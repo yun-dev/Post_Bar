@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <title>编辑资料_贴吧</title>
+
+    <style type="text/css">
+      .error-msg{
+        color: rgb(204, 76, 76) !important;
+      }
+      .black-font{
+        color: black
+      }
+      .img-container{
+        width: 200px;
+        height: 200px;
+        background:#F2F2F2;
+        margin-bottom:20px;
+        overflow: hidden;
+        border: 1px solid rgb(10, 125, 179);
+      }
+      .img-container>img{
+          width: 200px;
+          height: 200px;
+      }
+      .imgupload{
+          width: 200px;
+          height: 200px;
+      }
+      .banner-container{
+        width: 1024px;
+        height: 188px;
+        background:#F2F2F2;
+        margin: 0 auto;
+        margin-bottom:35px;
+        overflow: hidden;
+        border: 1px solid rgb(10, 125, 179);
+      }
+      .banner-container>img{
+          width: 1024px;
+          height: 188px;
+      }
+      .bannerupload{
+          width: 1024px;
+          height: 188px;
+      }
+      #search_input{
+        position: relative;
+      }
+      #search_tip{
+        position: absolute;
+        z-index:10;
+        left:31%;
+        top:70%;
+        width: 490px;
+      }
+      #search_tip ul li{
+        padding-left: 10px;
+      }
+    </style>
+
+    <script>
+        create_flag=true
+        submit_flag=true
+        function create_path(){
+            b_name=document.getElementById('b_name').value
+            if(create_flag){
+                fetch('/submit_path/',{
+                    method: 'POST',
+                    body: JSON.stringify({b_name:b_name}),
+                    headers:{'Content-Type': 'application/json'}
+                }).then(function (res){
+                    return res.json()
+                }).then(function (data){
+                    document.getElementById('b_path').value=data['b_path']
+                }).catch(function (e){
+                    console.error('错误:',e)
+                })
+            }
+            if(b_name=="" || b_name==null){
+                document.getElementById('b_path').value=""
+                create_flag=true
+            }
+        }
+
+        function stop_create(){
+            create_flag=false
+        }
+
+        function form_check(){
+          var b_id=document.getElementById('b_id').value
+          var b_name=document.getElementById('b_name').value
+          var b_path=document.getElementById('b_path').value
+          var b_topic=document.getElementById('b_topic').value
+          fetch_flag=true
+          if(b_name=="" || b_name==null){
+            document.getElementById('name_msg').innerHTML="<p class='error-msg'>贴吧名不能为空</p>"
+            fetch_flag=false
+          }
+          if(b_path=="" || b_path==null){
+            document.getElementById('path_msg').innerHTML="<p class='error-msg'>贴吧路径不能为空</p>"
+            fetch_flag=false
+          }
+          if(b_topic=="" || b_topic==null){
+            document.getElementById('topic_msg').innerHTML="<p class='error-msg'>选择一个贴吧主题</p>"
+            fetch_flag=false
+          }else{
+            document.getElementById('topic_msg').innerHTML=""
+          }
+          if(fetch_flag){
+            fetch('/form_check/',{
+              method:'POST',
+              body:JSON.stringify({b_id:b_id,b_name:b_name,b_path:b_path,}),
+              headers:{'Content-Type':'application/json'}
+            }).then( (res)=>{
+              return res.json()
+            }).then( (data)=>{
+              name_status=data.name_status
+              path_status=data.path_status
+              if(name_status==0 && path_status==0){
+                document.getElementById('name_msg').innerHTML=""
+                document.getElementById('path_msg').innerHTML=""
+                document.getElementById('topic_msg').innerHTML=""
+                document.getElementById('before_submit').classList.add('undisplay')
+                document.getElementById('submitting').classList.remove('undisplay')
+              }else{
+                document.getElementById('before_submit').classList.remove('undisplay')
+                document.getElementById('submitting').classList.add('undisplay')
+                if(name_status==1){
+                  document.getElementById('name_msg').innerHTML="<p class='error-msg'>贴吧名已被使用</p>"
+                }
+                if(path_status==1){
+                  document.getElementById('path_msg').innerHTML="<p class='error-msg'>贴吧路径已存在</p>"
+                }
+              }
+            }).catch( (e)=>{
+              console.error(e)
+            })
+          }
+        }
+
+        function select_topic(){
+            b_topic=document.getElementById('b_topic').value
+            fetch('/select_topic/',{
+                method: 'POST',
+                body: JSON.stringify({b_topic:b_topic}),
+                headers:{'Content-Type': 'application/json'}
+            }).then(function (res){
+                return res.json()
+            }).then(function (data){
+                topics_html=""
+                topics=data.topics
+                for(i=0;i<topics.length;i++){
+                  if(topics[i]==b_topic){
+                    topics_html+="<button style='margin-right:10px' type='button' class='button is-link' onclick='add_topic(\""+topics[i]+"\")'>"+topics[i]+"</button>"
+                  }else{
+                    topics_html+="<button style='margin-right:10px' type='button' class='button is-light' onclick='add_topic(\""+topics[i]+"\")'>"+topics[i]+"</button>"
+                  }
+                }
+                document.getElementById('show_topics').innerHTML=topics_html
+            }).catch(function (e){
+                console.error('错误:',e)
+            })
+        }
+        
+        function add_topic(b_topic){
+            topic=document.getElementById('b_topic').value
+            if(topic==b_topic){
+              document.getElementById('b_topic').value=""
+              document.getElementById('topic_msg').innerHTML="<p class='error-msg'>选择一个贴吧主题</p>"
+              document.getElementById('before_submit').classList.remove('undisplay')
+              document.getElementById('submitting').classList.add('undisplay')
+            }else{
+              document.getElementById('b_topic').value=b_topic
+              document.getElementById('topic_msg').innerHTML=""
+              document.getElementById('before_submit').classList.add('undisplay')
+              document.getElementById('submitting').classList.remove('undisplay')
+            }
+            select_topic()
+        }
+
+        function stop_show(keyword){
+          if(keyword){
+            document.getElementById('search_input').value=keyword
+          }
+          document.getElementById('search_tip').classList.add('undisplay')
+        }
+  
+        function search(){
+          var keyword=document.getElementById('search_input').value
+          if(keyword==null | keyword==""){
+            stop_show(null)
+          }else{
+            console.log(keyword)
+            fetch('/search/',{
+              method:'POST',
+              body:JSON.stringify({keyword:keyword}),
+              headers:{'Content-Type':'application/json'}
+            }).then( (res) => {
+              return res.json()
+            }).then( (data) => {
+              bar=data.bar
+              post=data.post
+              tip_html="<table style='width:100%;margin-left:10px;text-align:left !important'>"
+              for(i=0;i<bar.length;i++){
+                tip_html+="<tr><td style='text-align:left;'><button style='margin-right:10px' type='button' class='is-fullwidth button is-primary has-text-dark' onmousedown='stop_show(\""+bar[i][0]+"\")'>"+bar[i][0]+"</button></td></tr>"
+              }
+              for(j=0;j<post.length;j++){
+                tip_html+="<tr><td style='text-align:left;'><button style='margin-right:10px' type='button' class='is-fullwidth button is-primary has-text-dark' onmousedown='stop_show(\""+post[j][0]+"\")'>"+post[j][0]+"</button></td></tr>"
+              }
+              tip_html+="</table>"
+              document.getElementById('search_tip').classList.remove('undisplay')
+              document.getElementById('search_tip').innerHTML=tip_html
+            }).catch( (e) => {
+              console.error(e)
+            })
+          }
+        }
+        
+    </script>
+
+  </head>
+  <body class="has-background-dark">
+      <div class="navbar main is-light">
+          <div class="container">
+            <a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}" width="160px"/></a>
+            <div class="navbar-end">
+              <form action="/submit_search/" method="POST">
+              <div class="navbar-item field has-addons">
+                <div class="control">
+                  <input class="input input-search" id="search_input" name="search_input" onblur="stop_show(null)" oninput="search()" type="text" placeholder="搜索贴吧，帖子"/>
+                </div>
+                <div class="control"><a class="button is-info" href="#">进入贴吧</a></div><div style="width:20px;"></div>
+                <div class="control"><button style="border-radius:3px;" class="button is-link" type="submit">全吧搜索</button></div><div style="width:100px;"></div>
+              </div>
+              <div class="undisplay" id="search_tip">
+              </div>
+            </form>
+    
+              {% if is_login() %}
+              <div class="navbar-item">
+                <div class="navbar is-light">
+                  <div class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">{{user.u_nickname}}</a>
+                    <div class="navbar-dropdown">
+                      <a class="navbar-item" href="/user/{{user.u_id}}/">我的主页</a>
+                      <hr class="navbar-divider"/>
+                      <a class="navbar-item" href="/logout/">退出</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <div class="navbar-item"><a class="button is-light" href="/login/">登录</a></div>
+              <div class="navbar-item"><a class="button is-light" href="/register/">注册</a></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+    <div class="hero has-background-dark"></div><br/>
+    <div class="container">
+      <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+      <div class="hero-body card">
+        <div class="card-content">
+          <div class="columns">
+            <div class="column">
+              <form action="/bar/{{bar_path}}/edit/" enctype="multipart/form-data" method="POST">
+                <div class="card">
+                  <div class="card-content font">
+                    <div class="content">
+                      <input class="undisplay" value="{{bar_id}}" type="text" name="b_id" id="b_id">
+                      <p class="name color">贴吧名：
+                        <input class="input" id="b_name" name="b_name" type="text" value="{{bar.b_name}}" placeholder="请输入贴吧名" onkeyup="form_check()" oninput="create_path()"/>
+                      </p>
+                      <span class="name color" id="name_msg"></span>
+                    </div>
+                    <hr/>
+
+                    <div class="content">
+                      <p class="name color">贴吧路径：
+                        <input class="input" id="b_path" name="b_path" type="text" value="{{bar.b_path}}" placeholder="请输入贴吧路径" onkeyup="form_check()" onchange="stop_create()"/>
+                      </p>
+                      <span class="name color" id="path_msg"></span>
+                    </div>
+                    <hr/>
+
+                    <div class="content">
+                      <p class="name color">贴吧主题：
+                        <input class="input" id="b_topic" name="b_topic" type="text" value="{{bar.b_topic}}" placeholder="贴吧主题" onkeyup="form_check()" onfocus="select_topic()" oninput="select_topic()"/>
+                      </p>
+                      <p id="show_topics"></p>
+                      <span class="name color" id="topic_msg"></span>
+                    </div>
+                    <hr/>
+
+                    <div class="content">
+                      <p class="name color">贴吧头像：</p>
+                      <div class="columns">
+                        <div class="column is-3">
+                          <p class="black-font">当前贴吧头像</p>
+                          <div class="img"><img src="{{ url_for('static', filename=bar_head_img) }}" width="120"/></div>
+                        </div>
+                        <div class="column">
+                          <p class="black-font">选择一个图片</p>
+                          <div>
+                              <div class="img-container"></div>
+                              <input class="img-btn" type="file" id="b_head_img" name="b_head_img">
+                          </div>
+                          <script>
+                              function previewImg(fileInput,imgDiv){
+                                  if(window.FileReader){
+                                      var reader=new FileReader();
+                                      reader.readAsDataURL(fileInput.files[0]);
+                                      reader.onload=function(evt){
+                                          imgDiv.innerHTML="\<img src="+evt.target.result+"\>";
+                                      }
+                                  }else{
+                                      imgDiv.innerHTML='<div class="imgupload" style="filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale,src=\'' + fileInput.value + '\)\';"></div>';
+                                  }
+                              }
+                              function selectImg(fileInputs,imgDivs){
+                                  var checkImg=new RegExp("(.jpg$)|(.png$)|(.bmp$)|(.jpeg$)","i");
+                                  var i=0;
+                                  for(;i<fileInputs.length&&i<imgDivs.length;i++){
+                                      (function(i){
+                                          fileInputs[i].onchange=function(){
+                                              if(checkImg.test(fileInputs[i].value)){
+                                                  previewImg(this,imgDivs[i]);
+                                              }else{
+                                                  alert("只支持上传.jpg .png .bmp .jpeg;你的选择有误");
+                                              }
+                                          };
+                                      })(i);
+                                  }
+                      
+                              }
+                              var fileInputs=document.getElementsByClassName("img-btn");
+                              var imgDivs=document.getElementsByClassName("img-container");
+                              selectImg(fileInputs,imgDivs);
+                          </script>
+                        </div>
+                      </div>
+                    </div>
+                    <hr/>
+
+                    <div class="content">
+                      <p class="name color">贴吧横幅：</p>
+                      <div class="column">
+                        <p class="black-font">当前贴吧横幅</p>
+                        <div class="img has-text-centered"><img src="{{ url_for('static', filename=bar_banner_img) }}" width="1024"/></div>
+                        <br>
+                      </div>
+                      <div class="column">
+                        <p class="black-font">选择一个图片</p>
+                        <div class=" has-text-centered">
+                            <div class="banner-container"></div>
+                            <input class="banner-btn" type="file" id="b_banner_img" name="b_banner_img">
+                        </div>
+                        <script>
+                            function previewImg(fileInput,imgDiv){
+                                if(window.FileReader){
+                                    var reader=new FileReader();
+                                    reader.readAsDataURL(fileInput.files[0]);
+                                    reader.onload=function(evt){
+                                        imgDiv.innerHTML="\<img src="+evt.target.result+"\>";
+                                    }
+                                }else{
+                                    imgDiv.innerHTML='<div class="bannerupload" style="filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale,src=\'' + fileInput.value + '\)\';"></div>';
+                                }
+                            }
+                            function selectImg(fileInputs,imgDivs){
+                                var checkImg=new RegExp("(.jpg$)|(.png$)|(.bmp$)|(.jpeg$)","i");
+                                var i=0;
+                                for(;i<fileInputs.length&&i<imgDivs.length;i++){
+                                    (function(i){
+                                        fileInputs[i].onchange=function(){
+                                            if(checkImg.test(fileInputs[i].value)){
+                                                previewImg(this,imgDivs[i]);
+                                            }else{
+                                                alert("只支持上传.jpg .png .bmp .jpeg;你的选择有误");
+                                            }
+                                        };
+                                    })(i);
+                                }
+                            }
+                            var fileInputs=document.getElementsByClassName("banner-btn");
+                            var imgDivs=document.getElementsByClassName("banner-container");
+                            selectImg(fileInputs,imgDivs);
+                        </script>
+                      </div>
+                    </div>
+                    <hr/>
+
+                    <div class="content">
+                      <p class="name color">贴吧说明:
+                        <textarea id="b_statement" name="b_statement" class="textarea textarea width" rows="5" placeholder="请输入贴吧说明">{{bar.b_statement}}</textarea>
+                      </p>
+                    </div>
+                    <hr/>
+                    <div class="content has-text-centered" id="before_submit"><button class="button is-fullwidth is-light is-medium" type="button">提交</button></div>
+                    <div class="content has-text-centered undisplay" id="submitting"><button class="button is-fullwidth is-link is-medium" type="submit">提交</button></div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><br/>
+    <div class="footer has-background-grey-lighter">
+      <div class="content has-text-centered">Developmented by 第四组</div>
+    </div>
+  </body>
+</html>

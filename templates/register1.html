@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-steps.css') }}"/>
+    <script>
+        function ondisplay() {
+            var user = document.getElementById('user').value
+            var pwd = document.getElementById('pwd').value
+            var pwd1 = document.getElementById('pwd1').value
+            var number = document.getElementById('number').value
+            var phone = document.getElementById('phone').value
+            fetch('/new_mesg/', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({user: user, pwd: pwd, pwd1: pwd1, number: number, phone: phone})
+            }).then(function (res) {
+                return res.json()
+            }).then(function (data) {
+                if (data.status == 0) {
+                    location.href = '/register2/'
+                }
+                else {
+                    document.getElementById('tips').innerHTML = data.error
+                }
+            })
+        }
+
+        function get_focus() {
+            document.getElementById('tips').innerHTML = ""
+        }
+
+        function receve_number() {
+            var number = document.getElementById('number').value
+            fetch('/return_number', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({number: number})
+            }).then(function (res) {
+                return res.json()
+            }).then(function (data) {
+
+            })
+        }
+    </script>
+</head>
+<body>
+<div class="navbar main is-light">
+    <div class="container"><a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}"
+                                            width="160px"/></a>
+        <div class="navbar-end">
+            <div class="navbar-item field has-addons">
+                <div class="control">
+                    <input class="input input-search is-focused" type="text" placeholder="搜索贴吧，帖子"/>
+                </div>
+                <div class="control"><a class="button is-info" href="#">进入贴吧</a></div>
+            </div>
+            <div class="navbar-item field">
+                <div class="control"><a class="button is-link" href="#">全吧搜索</a></div>
+            </div>
+            <div class="navbar-item"></div>
+            <div class="navbar-item"></div>
+
+            {% if is_login() %}
+                <div class="navbar-item">
+                    <div class="navbar is-light">
+                        <div class="navbar-item has-dropdown is-hoverable">
+                            <a class="navbar-link" href="#">云小帅</a>
+                            <div class="navbar-dropdown">
+                                <a class="navbar-item">我的主页</a>
+                                <hr class="navbar-divider"/>
+                                <a class="navbar-item">退出</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="navbar-item"><a class="button is-light" href="/login">登录</a></div>
+                <div class="navbar-item"><a class="button is-light" href="/register">注册</a></div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="hero is-dark is-fullheight">
+    <div class="container has-text-centered ">
+        <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+
+        <div class="column is-6 is-offset-3" id="list1">
+            <br><br>
+
+            <div class="card">
+                <div class="box">
+                    <ul class="steps">
+                        <li class="steps-segment is-active"><span class="steps-marker">1</span></li>
+                        <li class="steps-segment "><span class="steps-marker">2</span></li>
+                        <li class="steps-segment"><span class="steps-marker">3</span></li>
+                    </ul>
+                    <div class="field">
+                        <h3 class="title has-text-grey">注册</h3>
+                        <p class="subtitile has-text-grey">欢迎注册!</p>
+                        <strong class="errmsg" style="color: red" id="tips">{{ error }}</strong>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <div class="columns">
+                                <div class="column is-2">用户名</div>
+                                <div class="column">
+                                    <input class="input  is-fullwidth" onfocus="get_focus()" type="text" name="user"
+                                           id="user"
+                                           placeholder="用户名长度为6~18个字符，支持中英文数字下划线"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <div class="columns">
+                                <div class="column is-2">密 码</div>
+                                <div class="column">
+                                    <input class="input  is-fullwidth" onfocus="get_focus()" type="password" name="pwd"
+                                           id="pwd"
+                                           placeholder="密码长度为6~18个字符，支持数字字母下划线"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <div class="columns">
+                                <div class="column is-2">确认密码</div>
+                                <div class="column">
+                                    <input class="input  is-fullwidth" onfocus="get_focus()" type="password" name="pwd1"
+                                           id="pwd1"
+                                           placeholder="确认密码"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <div class="columns">
+                                <div class="column is-2">手机号</div>
+                                <div class="column">
+                                    <input class="input is-fullwidth" onfocus="get_focus()" type="text" name="number"
+                                           id="number"
+                                           placeholder="手机号(中国大陆手机号)"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+
+                            <div class="columns">
+                                <div class="column is-2">验证码</div>
+                                <div class="column">
+                                    <div class="field has-addons  is-fullwidth">
+                                        <div class="control" style="width: 80%">
+                                            <input class="input" type="text" name="phone" id="phone" onfocus="get_focus()"
+                                                   placeholder="请输入验证码"/>
+                                        </div>
+                                        <div class="control" style="width: 20%"><a class="button is-info"
+                                                                                   onclick="receve_number()">获取验证码</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control has-text-centered">
+                                    <button class="button is-link is-rounded" type="button" onclick="ondisplay()">下一步
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <p class="has-text-grey"><a href="/login/">已有账号,点击登录</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+</html>

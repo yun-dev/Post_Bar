@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <title>{{ select_bar_info.b_name }}|贴吧</title>
+
+    <style type="text/css">   
+      .float{    
+          float:left;    
+          width : 200px;    
+          height: 200px;    
+          overflow: hidden;    
+          border: 1px solid #CCCCCC;    
+          border-radius: 10px;    
+          padding: 5px;    
+          margin: 5px;    
+      }    
+      img{    
+          position: relative;    
+      }    
+      .result{    
+          width: 200px;    
+          height: 200px;    
+          text-align: center;    
+          box-sizing: border-box;    
+      }   
+    
+    
+      #file_input{  
+          display: none;  
+      }  
+    
+    
+      .delete{  
+          width: 200px;  
+          height:200px;  
+          position: absolute;  
+          text-align: center;  
+          line-height: 200px;  
+          z-index: 10;  
+          font-size: 65px;  
+          background-color: rgba(45, 185, 150, 0.8);  
+          color: rgb(108, 110, 110);  
+          opacity: 0;  
+          transition-duration: 0.7s;  
+          -webkit-transition-duration: 0.7s;   
+      }  
+    
+    
+      .delete:hover{  
+          cursor: pointer;  
+          opacity: 1;  
+      }  
+      
+    </style> 
+
+    <script type="text/javascript">  
+
+        window.onload = function(){    
+          var input = document.getElementById("file_input");    
+          var result;    
+          var dataArr = []; // 储存所选图片的结果(文件名和base64数据)  
+          var fd;  //FormData方式发送请求    
+          var oSelect = document.getElementById("select");  
+          var oAdd = document.getElementById("add");  
+          var oSubmit = document.getElementById("submit");  
+          var oInput = document.getElementById("file_input");  
+           
+          if(typeof FileReader==='undefined'){    
+              alert("抱歉，你的浏览器不支持 FileReader");    
+              input.setAttribute('disabled','disabled');    
+          }else{    
+              input.addEventListener('change',readFile,false);    
+          }　　　　　//handler    
+          
+              
+          function readFile(){   
+              fd = new FormData();    
+              var iLen = this.files.length;  
+              var index = 0;  
+              for(var i=0;i<iLen;i++){  
+                  if (!input['value'].match(/.jpg|.gif|.png|.jpeg|.bmp/i)){　　//判断上传文件格式    
+                      return alert("上传的图片格式不正确，请重新选择");    
+                  }  
+                  var reader = new FileReader();  
+                  reader.index = i;    
+                  fd.append(i,this.files[i]);  
+                  reader.readAsDataURL(this.files[i]);  //转成base64    
+                  reader.fileName = this.files[i].name;  
+        
+        
+                  reader.onload = function(e){   
+                      var imgMsg = {    
+                          name : this.fileName,//获取文件名    
+                          base64 : this.result   //reader.readAsDataURL方法执行完后，base64数据储存在reader.result里    
+                      }   
+                      dataArr.push(imgMsg);    
+                      result = '<div class="delete">delete</div><div class="result"><img src="'+this.result+'" alt=""/></div>';    
+                      var div = document.createElement('div');  
+                      div.innerHTML = result;    
+                      div['className'] = 'float';  
+                      div['index'] = index;    
+                      document.getElementById('show_imgs').appendChild(div);  　　//插入dom树    
+                      var img = div.getElementsByTagName('img')[0];  
+                      img.onload = function(){    
+                          var nowHeight = ReSizePic(this); //设置图片大小    
+                          this.parentNode.style.display = 'block';    
+                          var oParent = this.parentNode;    
+                          if(nowHeight){    
+                              oParent.style.paddingTop = (oParent.offsetHeight - nowHeight)/2 + 'px';    
+                          }    
+                      }   
+        
+        
+                      div.onclick = function(){  
+                          this.remove();                  // 在页面中删除该图片元素  
+                          delete dataArr[this.index];  // 删除dataArr对应的数据  
+                      }  
+                      index++;  
+                  }    
+              }    
+          }    
+              
+              
+          function send(){   
+              var title=document.getElementById('title').value
+              var content=document.getElementById('content').value
+              var bar_path=document.getElementById('b_path').value
+              var submitArr = [];  
+              for (var i = 0; i < dataArr.length; i++) {  
+                  if (dataArr[i]) {  
+                      submitArr.push(dataArr[i]);  
+                  }  
+              }  
+              // console.log('提交的数据：'+JSON.stringify(submitArr)) 
+              $.ajax({    
+                  url : '/new_post/',    
+                  type : 'post', 
+                  data : JSON.stringify({"bar_path":bar_path,"title":title,"content":content,"imgs":submitArr}),    
+                  dataType: 'json',    
+                  //processData: false,   用FormData传fd时需有这两项    
+                  //contentType: false,    
+                  success : function(data){    
+                      console.log('返回的数据：'+JSON.stringify(data))
+                      location.href='/bar/'+bar_path+'/'    
+                　}
+      
+              })    
+          }    
+              
+           
+        
+        
+          oSelect.onclick=function(){   
+              //oInput.value = "";   // 先将oInput值清空，否则选择图片与上次相同时change事件不会触发  
+              //清空已选图片  
+              $('.float').remove();  
+              dataArr = [];   
+              index = 0;          
+              oInput.click();   
+          }   
+        
+        
+          oAdd.onclick=function(){  
+              //oInput.value = "";   // 先将oInput值清空，否则选择图片与上次相同时change事件不会触发  
+              oInput.click();   
+          }   
+        
+        
+          oSubmit.onclick=function(){    
+              if(!dataArr.length){    
+                  // return alert('请先选择文件');    
+              }    
+              send();    
+          }    
+      }    
+      /*    
+       用ajax发送fd参数时要告诉jQuery不要去处理发送的数据，    
+       不要去设置Content-Type请求头才可以发送成功，否则会报“Illegal invocation”的错误，    
+       也就是非法调用，所以要加上“processData: false,contentType: false,”    
+       * */    
+          
+                      
+      function ReSizePic(ThisPic) {    
+          var RePicWidth = 200; //这里修改为您想显示的宽度值    
+          
+          var TrueWidth = ThisPic.width; //图片实际宽度    
+          var TrueHeight = ThisPic.height; //图片实际高度    
+              
+          if(TrueWidth>TrueHeight){    
+              //宽大于高    
+              var reWidth = RePicWidth;    
+              ThisPic.width = reWidth;    
+              //垂直居中    
+              var nowHeight = TrueHeight * (reWidth/TrueWidth);    
+              return nowHeight;  //将图片修改后的高度返回，供垂直居中用    
+          }else{    
+              //宽小于高    
+              var reHeight = RePicWidth;    
+              ThisPic.height = reHeight;    
+          }    
+      }
+
+      function look_send(arg){
+        if(arg=="look"){
+          //alert('进入看帖模块')
+          document.getElementById('look_btn').classList.add('is-active')
+          document.getElementById('send_btn').classList.remove('is-active')
+          document.getElementById('look').classList.remove('undisplay')
+          document.getElementById('send').classList.add('undisplay')
+        }else{
+          //alert('进入发帖模块')
+          document.getElementById('look_btn').classList.remove('is-active')
+          document.getElementById('send_btn').classList.add('is-active')
+          document.getElementById('look').classList.add('undisplay')
+          document.getElementById('send').classList.remove('undisplay')
+        }
+      }
+
+      function form_check(){
+        var title=document.getElementById('title').value
+        var content=document.getElementById('content').value
+        if(title=="" || title==null){
+            alert('帖子标题不能为空')
+            return false
+          }else if(content=="" || content==null){
+            alert('帖子内容不能为空')
+            return false
+          }else{
+              return true
+          }  
+      }
+
+    </script>
+
+  </head>
+  <body>
+    <div class="navbar main is-light">
+      <div class="container"><a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}" width="160px"/></a>
+        <div class="navbar-end">
+          <div class="navbar-item field has-addons">
+            <div class="control">
+              <input class="input input-search is-focused" type="text" placeholder="搜索贴吧，帖子"/>
+            </div>
+            <div class="control"><a class="button is-info" href="#">进入贴吧</a></div>
+          </div>
+          <div class="navbar-item field">
+            <div class="control"><a class="button is-link" href="#">全吧搜索</a></div>
+          </div>
+            {% if is_login() %}
+          <div class="navbar-item">
+            <div class="navbar is-light">
+              <div class="navbar-item has-dropdown is-hoverable"><a class="navbar-link">{{ select_user_info.u_nickname }}</a>
+                <div class="navbar-dropdown"><a class="navbar-item" href="/user/{{ select_user_info.u_id }}/">我的主页</a>
+                  <hr class="navbar-divider"/><a class="navbar-item" href="/logout/">退出</a>
+                </div>
+              </div>
+            </div>
+          </div>
+            {% else %}
+          <div class="navbar-item"><a class="button is-light" href="/login/">登录</a></div>
+          <div class="navbar-item"><a class="button is-light" href="/register/">注册</a></div>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="hero has-background-dark">
+      <div class="container">
+        <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div><br/>
+        <div class="card bar-bg-height">
+            <img src="{{ url_for('static', filename=select_bar_info.b_banner_img) }}" width="100%"/>
+        </div>
+        <div class="card">
+          <div class="card-content has-background-light">
+            <div class="columns">
+              <div class="column is-8">
+                <div class="media">
+                  <div class="media-left"><img src="{{ url_for('static', filename=select_bar_info.b_head_img) }}" width="128"/></div>
+                  <div class="media-content column">
+                    <ul class="ul-self">
+                      <li><a class="title" href="/bar/{{ select_bar_info.b_path }}/">{{ select_bar_info.b_name }}</a></li>
+                      <li>
+                        <p>{{ select_bar_info.b_statement }}</p>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="media-content">
+                    <ul class="ul-self">
+
+                        {% if not is_login() %}
+                        <li><a class="is-link button is-rounded" href="/login/">+关注</a></li>
+                        {% endif %}
+                        {% if is_login() and attetion_bar_state.relation==0 %}
+                        <li><a class="is-dark button is-rounded" href="/bar/{{ select_bar_info.b_path }}/edit/">编辑</a></li>
+                        {% elif  is_login() and attetion_bar_state.relation==1 %}
+                        <li><br/><a class="is-light button is-rounded" href="/concentrate_a_bar/{{select_bar_info.b_id}}?cancel">+取消关注</a></li>
+                        {% elif  is_login() and attetion_bar_state==None %}
+                        <li><br/><a class="is-link button is-rounded" href="/concentrate_a_bar/{{select_bar_info.b_id}}">+关注</a></li>
+                        {% endif %}
+
+
+                      <li><br/><br/>
+                        <div class="media">
+                          <div class="media-left">贴吧主题：</div>
+
+                          <div class="media-right"><a href="/bar_list/{{ select_bar_info.b_topic }}/">{{ select_bar_info.b_topic }}</a></div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="column">
+                <ul class="ul-self">
+                  <li>
+                    <div class="columns">
+                      <div class="column">
+                        <div class="media">
+                          <div class="media-left"><img src="{{ url_for('static', filename='img/counts.png') }}" width="20"/></div>
+                          <div class="media-content">关注：{{ select_bar_info.b_count_users }}</div>
+                        </div>
+                      </div>
+                      <div class="column">
+                        <div class="media">
+                          <div class="media-left"><img src="{{ url_for('static', filename='img/posts.png') }}" width="20"/></div>
+                          <div class="media-content">帖子：{{ select_bar_info.b_count_posts }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li><br/>
+                    <div class="media">
+                      <div class="media-left"><br/>
+                        <div class="content">本吧牛人：</div>
+                      </div>
+                      <div class="media-right">
+                        <div class="media">
+                        {% if user_img != None %}
+                          <div class="media-left"><a class="image is-64x64" href="/user/{{ user.u_id }}/"><img class="is-rounded" src="{{ url_for('static', filename=user_img) }}"/>
+                          </a></div>
+                          <div class="media-content"><a href="/user/{{ user.u_id }}/">{{ user.u_name }}</a>
+                            <div class="content">发帖数：{{ max_sum }}</div>
+                        {% else %}
+                              <div class="media-left"><span class="image is-64x64" ><img class="is-rounded" src="{{ url_for('static', filename='img/default_max_post.jpg') }}"/>
+                          </span></div>
+                          本吧暂时无人发帖
+                        </div>
+                         {% endif %}
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="columns">
+              <div class="column">
+                <div class="tabs is-boxed is-medium">
+                  <ul>
+                    <li class="is-active" id="look_btn" ><a onclick="look_send('look')"><span>看帖</span></a></li>
+                    {% if is_login() %}
+                    <li class="" id="send_btn"><a onclick="look_send('send')"><span>发帖</span></a></li>
+                    {% endif %}
+                  </ul>
+                </div>
+              </div>
+              <div class="column">
+                <input class="input" type="text" placeholder="标题，作者，关键字"/>
+              </div>
+              <div class="column is-2"><a class="button is-info" href="#">吧内搜索</a></div>
+            </div>
+          </div>
+
+          
+          <!-- 发帖模块，张云的 -->
+          <input type="hidden" id="b_path" value="{{select_bar_info.b_path}}">
+          <div class="card-content input-post undisplay" id="send">
+
+              <ul class="ul-self">
+                <li class="has-text-centered">
+                  <input class="input" id="title" name="title" type="text" placeholder="标题"/>
+                </li>
+                <li style="text-align:right">
+                  <a class="is-link" href="https://tieba.baidu.com/tb/eula.html">发贴请遵守 贴吧协议及“七条底线”</a>
+                </li>
+                <li class="has-text-centered">
+                  <textarea class="textarea" id="content" name="content" rows="10" placeholder="帖子内容"></textarea>
+                </li>
+                <li>
+                  <label>请选择一个图像文件：</label>  
+                  <button class="undisplay" id="select">(重新)选择图片</button> 
+                  <button class="button is-dark" id="add" type="button">选择图片</button>  
+                  <input type="file" id="file_input" multiple/> <!--用input标签并选择type=file，记得带上multiple，不然就只能单选图片了-->    
+                </li>
+                <li id="show_imgs" style="height:200px">
+                </li>
+                <li style="text-align:right"><button class="button is-info is-medium" id="submit" type="submit">发帖</button></li>
+              </ul>
+
+          </div>
+
+
+          <!-- 看贴模块，晓旭的 -->
+          <div class=" " id="look">
+              {% for i in get_all_posts(page_index=page,order_by_hot=False,b_id=select_bar_info.b_id) %}
+              <hr/>
+                <div class="card-content">
+                  <div class="columns">
+                    <div class="column"><a class="subtitle title-color" href="/post/{{ i.p_id }}/">{{ i.p_title }}</a></div>
+                      {% if is_login() %}
+                          {% if select_user_info.u_id==i.u_id %}
+                            <div class="column is-2"><a class="button" href="/delete_post/{{ i.p_id }}/{{ i.b_id }}/">删除该贴</a></div>
+                           {% endif %}
+                      {% endif %}
+
+
+
+                  </div>
+                </div>
+                <div class="card-content">{{ i.p_content }}</div>
+                <div class="card-content">
+                <div class="columns">
+                  {% for path in get_post_img(i.p_id) %}
+                      <div class="column is-3"><img src="{{ url_for('static', filename=path.img_path) }}" width="262"/></div>
+                  {% endfor %}
+                </div>
+                  <div class="content">
+                    <div class="columns">
+                      <div class="column">
+                        <div class="media">
+                          <div class="media-left"><img src="{{ url_for('static', filename='img/user_logo.png') }}" width="30"/></div>
+                          <div class="media-content"><a href="/user/{{ i.u_id }}/">{{ get_user_by_id(i.u_id).u_nickname }}</a></div>
+                        </div>
+                      </div>
+                      <div class="column">
+                        <div class="media">
+                          <div class="media-left"><img src="{{ url_for('static', filename='img/msg_logo.png') }}" width="32"/></div>
+                          <div class="media-content">{{ i.p_count_comments }} 回帖</div>
+                        </div>
+                      </div>
+                      <div class="column is-3">
+                        <div class="media">
+                          <div class="media-left"><img src="{{ url_for('static', filename='img/time_bg.png') }}" width="30"/></div>
+                          <div class="media-content">{{ i.p_create_at }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            
+                <hr/>
+                <div class="column">
+                  <div class="pagination is-centered is-rounded">
+                      {% if page!=1 %}
+                      <a class="pagination-previous" href="/post_page/{{ select_bar_info.b_path }}/{{ page-1 }}/">上一页</a>
+                      {% endif %}
+
+
+                     <div class="pagination-list has-text-centered">
+                          {% for i in range(get_page_counts(u_id=None,b_id=select_bar_info.b_id)) %}
+                          {% if (i+1)==page %}
+                          <a class="pagination-link is-current" href="/post_page/{{ select_bar_info.b_path }}/{{ i+1 }}/">{{ i+1 }}</a>
+                          {% else %}
+                          <a class="pagination-link " href="/post_page/{{ select_bar_info.b_path }}/{{ i+1 }}/">{{ i+1 }}</a>
+                          {% endif %}
+                            {% endfor %}
+                      </div>
+                      {% if page<get_page_counts(u_id=None,b_id=select_bar_info.b_id) %}
+
+                      <a class="pagination-next" href="/post_page/{{ select_bar_info.b_path }}/{{ page+1 }}/">下一页</a>
+                      {% endif %}
+
+                  </div>
+                </div>
+            </div>
+
+
+
+        </div>
+      </div>
+    </div>
+    <div class="footer has-background-grey-lighter">
+      <div class="content has-text-centered">Developmented by 第四组</div>
+    </div>
+  </body>
+</html>

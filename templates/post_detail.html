@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <script>
+
+      function show_comment_input(c_id){
+        document.getElementById('comment_btn'+c_id).classList.add('undisplay')
+        document.getElementById('comment_input'+c_id).classList.remove('undisplay')
+        document.getElementById('input'+c_id).focus()
+      }
+
+      function show_comment_btn(c_id){
+        document.getElementById('comment_btn'+c_id).classList.remove('undisplay')
+        document.getElementById('comment_input'+c_id).classList.add('undisplay')
+        document.getElementById('input'+c_id).value=""
+      }
+
+      function delete_comment(c_id,p_id){
+        fetch('/delete_comment/',{
+          method:'POST',
+          body:JSON.stringify({c_id:c_id,p_id:p_id}),
+          headers:{'Content-Type':'application/json'}
+        }).then((res)=>{
+          return res.json()
+        }).then((data)=>{
+          location.href='/post/'+p_id+'/'
+        }).catch((e)=>{
+          console.error(e)
+        })
+      }
+
+      function submit_comment(c_id,p_id){
+        var comment=document.getElementById('input'+c_id).value
+        fetch('/new_comment/',{
+          method: 'POST',
+          body: JSON.stringify({p_id:p_id,c_content:comment,f_id:c_id}),
+          headers:{'Content-Type': 'application/json'}
+      }).then(function (res){
+          return res.json()
+      }).then(function (data){
+          if(data.status=='not_login'){
+            alert('需要登录之后才能评论')
+          }else{
+            location.href='/post/'+p_id+'/'
+          }
+          // 下面的ajax渲染，图片路径问题
+          comments=data.comments
+          post=data.post
+          html_comment=""
+          static_root = 'url_for("static", filename="/")';
+          floor=1
+          for(i=0;i<comments.length;i++){
+            if(comments[i][4]==0){
+              html_comment+="<div class='tie-container'>"+(floor++)+"楼<hr><div class='columns is-gapless'><div class='column is-1' style='margin-right:25px'>"
+              +"<br><div class='navbar-brand'><a href='#'><img class='img' src='" + static_root + comments[i][5]+"'"
+              +" width='60px'/></a></div></div><div class='column'><br><table style='width:500px;'><tr><td><a href='/user/"+comments[i][1]+"'>"+comments[i][6]
+              +":&nbsp;&nbsp;&nbsp;</a>"
+            }else{
+              html_comment+="<div class='tie-container'><div class='columns is-gapless'><div class='column is-1' style='margin-left:50px;margin-right:25px'>"
+              +"<br><div class='navbar-brand'><a href='#'><img class='img' src='" + static_root + comments[i][5]+"'"
+              +" width='45px'/></a></div></div><div class='column'><br><table style='width:450px;'><tr><td><a href='/user/"+comments[i][1]+"'>"+comments[i][6]
+              +"</a>&nbsp;&nbsp;&nbsp;回复&nbsp;&nbsp; <a href='/user/"+comments[i][7]+"'>"+comments[i][8]+" </a>：&nbsp;&nbsp;&nbsp;"
+            }
+            html_comment+=comments[i][3]+"</td></tr></table></div><div class='column is-1' id='comment_btn"+comments[i][0]+"'><br><a onclick='show_comment_input("
+            +comments[i][0]+")'>回复</a></div></div><div class='card-content undisplay has-text-centered' id='comment_input"+comments[i][0]+"'><div class="
+              +"'field has-addons'><div class='control'><input style='width:550px' class='input' id='input"+comments[i][0]+"' onblur='show_comment_btn("+comments[i][0]+")'"
+              +" type='text' placeholder='回复"+comments[i][6]+"'/></div><div class='control'><button class='button is-dark' onmousedown='submit_comment("+comments[i][0]
+              +","+post[0]+")'>回复</button></div></div></div><br></div>"
+          }
+          document.getElementById('show_all_comments').innerHTML=html_comment
+
+      }).catch(function (e){
+          console.error('错误:',e)
+      })
+        show_comment_btn(c_id)
+      }
+
+    </script>
+    <title>帖子详情页</title>
+  </head>
+  <body>
+    <div class="navbar is-light">
+      <div class="container">
+        <div class="navbar-end">
+          <div class="navbar-item"><a href="https://www.baidu.com">网页</a></div>
+          <div class="navbar-item"><a href="http://news.baidu.com/">咨询</a></div>
+          <div class="navbar-item"><a href="https://tieba.baidu.com">贴吧</a></div>
+          <div class="navbar-item"><a href="https://zhidao.baidu.com/">知道</a></div>
+          <div class="navbar-item"><a href="http://music.taihe.com/">音乐</a></div>
+          <div class="navbar-item"><a href="http://image.baidu.com/">图片</a></div>
+          <div class="navbar-item"><a href="http://v.baidu.com/">视频</a></div>
+          <div class="navbar-item"><a href="https://map.baidu.com/">地图</a></div>
+          <div class="navbar-item"><a href="https://wenku.baidu.com/">文库</a></div>
+          <div class="navbar-item">
+            <p>|</p>
+          </div>
+          <div class="navbar-item"><a href="https://www.baidu.com">百度首页</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="navbar main is-light">
+      <div class="container"><a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}" width="160px"/></a>
+        <div class="navbar-end">
+          <div class="navbar-item field has-addons">
+            <div class="control">
+              <input class="input input-search is-focused" type="text" placeholder="搜索贴吧，帖子"/>
+            </div>
+            <div class="control"><a class="button is-info" href="#">进入贴吧</a></div>
+          </div>
+          <div class="navbar-item field">
+            <div class="control"><a class="button is-link" href="#">全吧搜索</a></div>
+          </div>
+          <div class="navbar-item"></div>
+          <div class="navbar-item"></div>
+
+          {% if is_login() %}
+          <div class="navbar-item">
+            <div class="navbar is-light">
+              <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link">{{user.u_nickname}}</a>
+                <div class="navbar-dropdown">
+                  <a class="navbar-item" href="/user/{{user.u_id}}/">我的主页</a>
+                  <hr class="navbar-divider"/>
+                  <a class="navbar-item" href="/logout/">退出</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="navbar-item"><a class="button is-light" href="/login/">登录</a></div>
+          <div class="navbar-item"><a class="button is-light" href="/register/">注册</a></div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+    <div class="hero body-backcolor">
+      <div class="container body-container">
+        <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+        <div class="card-main-1">
+            <div class="columns">
+                <div class="column is-2"><a href="/bar/{{bar.b_path}}/"><img class="image" src="{{ url_for('static', filename=bar.b_head_img) }}" width="90px"/></a></div>
+              <div class="column is-2"><br><p class="subtitle">{{bar.b_name}}</p></div>
+              <div class="column is-2">
+                {% if is_login() %}
+                  {% if attention_status(user.u_id,bar.b_id)==0 %}
+                    <div class="column is-2"><a class="button is-dark" href="/bar/{{bar.b_path}}/">吧主</a></div>
+                  {% else %}
+                    {% if attention_status(user.u_id,bar.b_id)==1 %}
+                      <div class="column is-2"><a class="button is-light" href="/concentrate_a_bar/{{bar.b_id}}?cancel">已关注</a></div>
+                    {% else %}
+                      <div class="column is-2"><a class="button is-link" href="/concentrate_a_bar/{{bar.b_id}}">+关注</a></div>
+                    {% endif %}
+                  {% endif %}
+                {% else %}
+                  <div class="column is-2"><a class="button is-link" href="/login/">+关注</a></div>
+                {% endif %}
+              </div>
+              <div class="column is-2"><br><p class="subtitle">关注： {{bar.b_count_users}}</p></div>
+              <div class="column "><br><p class="subtitle">帖子： {{bar.b_count_posts}}</p></div>
+            </div>
+        </div>
+        <div class="card-main-3">
+          <div class="card-content">
+            <div class="navbar">
+              <div class="navbar-brand">
+                <p>&nbsp;&nbsp;{{post.p_count_comments}}&nbsp;&nbsp;评论回复</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-content">
+            <div class="columns is-gapless">
+              <div class="column is-three-quarters">
+                <div class="card">
+                  <div class="card-content">
+                    <div class="navbar">
+                      <div class="navbar-brand"></div>
+                      <div class="subtitle">{{post.p_title}}</div>
+                      <div class="navbar-end">
+                        <div class="navbar-item"></div><a class="button is-link is-outlined">只看楼主</a>
+                        <div class="navbar-item"></div><a class="button is-link is-outlined">收藏</a>
+                        {% if user.u_id==post.u_id %}
+                          <div class="navbar-item"></div><a class="button is-link is-outlined" href="/delete_post/{{post.p_id}}/{{bar.b_id}}/">删除</a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-content">
+                    <div class="columns is-gapless">
+                      <div class="column is-one-fifth">
+                        <ul>
+                          <li class="navbar-brand"><a href="/user/{{get_user_by_id(post.u_id).u_id}}/"><img class="img" src="{{ url_for('static', filename=get_user_by_id(post.u_id).u_head_img) }}" width="100px"/></a></li>
+                          <li class="navbar-item">
+                            <p class="content"><a href="/user/{{get_user_by_id(post.u_id).u_id}}/">{{get_user_by_id(post.u_id).u_nickname}}</a></p>
+                          </li>
+                        </ul>
+                      </div>
+                      <div style="text-align:left" class="column has-background-light">
+                        <table style="width:520px;">
+                          <tr><td>
+                            {{post.p_content}}
+                          </td></tr>
+                          {% for i in get_post_img(post.p_id) %}
+                          <tr><td style="margin-top:10px"><img class="img" src="{{ url_for('static', filename=i.img_path) }}"/></td></tr>
+                          {% endfor %}
+                        </table>
+                      </div>
+
+                    </div>
+                    <div class="navbar">
+                      <div class="navbar-end">
+                        <p class="has-text-grey-light"> 发布于:&nbsp;&nbsp;&nbsp;&nbsp;  {{post.p_create_at}} &nbsp;&nbsp;&nbsp;&nbsp; </p><a class="" id="comment_btn0" onclick="show_comment_input(0)">评论</a>
+                      </div>
+                    </div>
+                    <div class="card-content undisplay has-text-centered" id="comment_input0">
+                      <div class="field has-addons">
+                        <div class="control">
+                          <input style="width:550px" class="input" id="input0" onblur="show_comment_btn(0)" type="text" placeholder="评论一下"/>
+                        </div>
+                        <div class="control"><button class="button is-dark" onmousedown="submit_comment(0,'{{post.p_id}}')">回复</button></div>
+                      </div>
+                    </div>
+
+                    <div id="show_all_comments">
+                      {% for c in comments %}
+                      <div class="tie-container">
+                          {% if c.f_id==0 %}
+                            <hr>
+                          {% endif %}
+                        <div class="columns is-gapless">
+                          {% if c.f_id==0 %}
+                            <div class="column is-1" style="margin-right:25px">
+                              <br>
+                              <div class="navbar-brand"><a href="#"><img class="img" src="{{ url_for('static', filename=get_user_by_id(c.u_id).u_head_img) }}" width="60px"/></a></div>
+                            </div>
+                            <div class="column">
+                                <br>
+                                <table style="width:500px;"><tr><td>
+                          {% else %}
+                            <div class="column is-1" style="margin-left:50px;margin-right:25px">
+                              <br>
+                              <div class="navbar-brand"><a href="#"><img class="img" src="{{ url_for('static', filename=get_user_by_id(c.u_id).u_head_img) }}" width="45px"/></a></div>
+                            </div>
+                            <div class="column">
+                                <br>
+                                <table style="width:450px;"><tr><td>
+                          {% endif %}
+                              
+
+
+                          {% if c.f_id==0 %}
+                            {% if c.u_id==post.u_id %}
+                              <a href="#">楼主：</a>
+                            {% else %}
+                              <a href="/user/{{get_user_by_id(c.u_id).u_id}}/">{{get_user_by_id(c.u_id).u_nickname}}</a>&nbsp;&nbsp;：
+                            {% endif %}
+                          {% else %}
+
+                            {% if c.u_id==post.u_id %}
+                            <a href="#">楼主</a>&nbsp;&nbsp;回复&nbsp;&nbsp; <a href="/user/{{get_user_by_f_id(c.f_id).u_id}}/">{{get_user_by_f_id(c.f_id).u_nickname}} </a>：&nbsp;&nbsp;&nbsp;
+                            {% else %}
+                              {% if get_user_by_f_id(c.f_id).u_id==post.u_id %}
+                                <a href="/user/{{get_user_by_id(c.u_id).u_id}}/">{{get_user_by_id(c.u_id).u_nickname}}</a>&nbsp;&nbsp;回复&nbsp;&nbsp; <a href="#">楼主 </a>：&nbsp;&nbsp;&nbsp;
+                              {% else %}
+                                <a href="/user/{{get_user_by_id(c.u_id).u_id}}/">{{get_user_by_id(c.u_id).u_nickname}}</a>&nbsp;&nbsp;回复&nbsp;&nbsp; <a href="/user/{{get_user_by_f_id(c.f_id).u_id}}">{{get_user_by_f_id(c.f_id).u_nickname}} </a>：&nbsp;&nbsp;&nbsp;
+                              {% endif %}
+                            {% endif %}
+                          {% endif %}
+                                {{c.c_content}}
+                              </td></tr>
+                            </table>
+                          </div>
+                          <div class="column is-2" id="comment_btn{{c.c_id}}"><br>
+                            {% if user.u_id==post.u_id %}
+                              <a onclick="delete_comment('{{c.c_id}}','{{post.p_id}}')">删除&nbsp;&nbsp;</a>|&nbsp;&nbsp;
+                            {% endif %}
+                            <a onclick="show_comment_input('{{c.c_id}}')">回复</a></div>
+                        </div>
+                        <div class="card-content undisplay has-text-centered" id="comment_input{{c.c_id}}">
+                          <div class="field has-addons">
+                            <div class="control">
+                              <input style="width:550px" class="input" id="input{{c.c_id}}" onblur="show_comment_btn('{{c.c_id}}')" type="text" placeholder="回复{{get_user_by_id(c.u_id).u_nickname}}"/>
+                            </div>
+                            <div class="control"><button class="button is-dark" onmousedown="submit_comment('{{c.c_id}}','{{post.p_id}}')">回复</button></div>
+                          </div>
+                        </div>
+                        <br>
+                      </div>
+                      {% endfor %}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              <div class="column">
+                <div class="card color8">
+                  <div class="media">
+                    <div class="media-left"><a href="#"><img class="img" src="{{ url_for('static', filename='img/king.png') }}"/></a></div>
+                    <div class="media-right">
+                      <ul>
+                        <li><a href="#"><img class="img" src="{{ url_for('static', filename='img/1.png') }}"/></a></li>
+                        <li><a href="#"><img class="img" src="{{ url_for('static', filename='img/2.png') }}"/></a></li>
+                        <li><a href="#"><img class="img" src="{{ url_for('static', filename='img/3.png') }}"/></a></li>
+                      </ul>
+                    </div>
+                  </div><a class="button is-primary is-outlined is-medium">兑现本吧会员</a>
+                  <hr>
+                  <p class="content">扫二维码下载贴吧客户端</p>
+                  <div class="media">
+                    <div class="media-left">
+                      <ul>
+                        <li>
+                          <p>下载贴吧APP</p>
+                        </li>
+                        <li>
+                          <p>看高清直播，视频</p>
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="media-right"><a href="#"><img class="img" src="{{ url_for('static', filename='img/二维码.png') }}"/></a></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer has-background-grey-lighter">
+      <div class="content has-text-centered">Developmented by 第四组</div>
+    </div>
+  </body>
+</html>

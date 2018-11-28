@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <title>贴吧列表</title>
+          <script>
+        function sure() {
+ alert('是否删除该贴')
+
+    }
+</script>
+  </head>
+  <body class="has-background-dark">
+      <div class="card">
+      <div class="top-container">
+        <div class="navbar">
+          <div class="navbar-item"><a href="https://www.baidu.com">网页</a></div>
+          <div class="navbar-item"><a href="http://news.baidu.com/">咨询</a></div>
+          <div class="navbar-item"><a href="https://tieba.baidu.com">贴吧</a></div>
+          <div class="navbar-item"><a href="https://zhidao.baidu.com/">知道</a></div>
+          <div class="navbar-item"><a href="http://music.taihe.com/">音乐</a></div>
+          <div class="navbar-item"><a href="http://image.baidu.com/">图片</a></div>
+          <div class="navbar-item"><a href="http://v.baidu.com/">视频</a></div>
+          <div class="navbar-item"><a href="https://map.baidu.com/">地图</a></div>
+          <div class="navbar-item"><a href="https://wenku.baidu.com/">文库</a></div>
+          <div class="navbar-item">
+            <p>|</p>
+          </div>
+          <div class="navbar-item"><a href="https://www.baidu.com">百度首页</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="navbar main is-light">
+      <div class="container"><a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}" width="160px"/></a>
+        <div class="navbar-end">
+          <div class="navbar-item field has-addons">
+            <div class="control">
+              <input class="input" type="text" placeholder="搜索贴吧，帖子"/>
+            </div>
+            <div class="control"><a class="button is-info" href="#">进入贴吧</a></div>
+          </div>
+          <div class="navbar-item field">
+            <div class="control"><a class="button is-link" href="#">全吧搜索</a></div>
+          </div>
+          <div class="navbar-item"></div>
+          <div class="navbar-item"></div>
+          {% if is_login() %}
+          <div class="navbar-item">
+            <div class="navbar is-light">
+              <div class="navbar-item has-dropdown is-hoverable"><a class="navbar-link" href="/user/{{ select_user_info.u_id }}">{{ select_user_info.u_nickname }}</a>
+                <div class="navbar-dropdown"><a class="navbar-item" href="/">我的主页</a>
+                    <a class="navbar-item" href="/user/mybar/{{ select_user_info.u_id }}/">我的贴吧</a>
+                  <hr class="navbar-divider"/><a class="navbar-item" href="#">退出</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="navbar-item"><a class="button is-light" href="/login">登录</a></div>
+          <div class="navbar-item"><a class="button is-light" href="/register">注册</a></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="hero has-background-dark"></div><br/>
+    <div class="container">
+      <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+      <div class="hero-body card">
+        <div class="card-content">
+          <div class="columns">
+            <div class="column is-2">
+              <div class="card">
+                <div class="card-content">
+                  <div class="subtitle">我在贴吧</div>
+
+                {% if is_login() %}
+                  <div class="media">
+                    <div class="media-left">
+                      <div class="img"><img src="{{ url_for('static', filename=select_user_info.u_head_img) }}" width="80"/></div>
+                    </div>
+                    <div class="media-content"><br/><a href="/user/{{ select_user_info.u_id }}">{{ select_user_info.u_nickname }}</a></div>
+                  </div>
+                  <div class="media">
+                    <div class="media-content">
+                      <div class="subtitle">我的贴吧</div>
+                    </div>
+                    <div class="media-content"><a class="tag is-info" href="#">新建</a></div>
+                  </div>
+                {% for b_topic in list_b_topic %}
+                  <div class="tags">
+
+                    {% for i in get_bars_by_topic(b_topic) %}
+                    <div class="tag"><a class="is-light" href="/bar/{{ i.b_path }}/">{{ b_topic }}</a></div>
+                  {% endfor %}
+                  </div>
+                {% endfor %}
+                {% else %}
+                    <div class="tag"><a class="is-light" href="/login">去登陆</a></div>
+                {% endif %}
+                  <hr/>
+                  <p class="subtitle">全部贴吧分类</p>
+                    <div class="columns is-multiline">
+                          {% for topic in get_all_topics() %}
+                                <div class="column is-half"><a class="is-light" href="/bar_list/{{ topic[0] }}">{{ topic[0] }}</a></div>
+                          {% endfor %}
+
+                                <div class="column is-half"><a class="is-light" href="/bar_list/推荐">推荐</a></div>
+
+                    </div>
+
+
+
+
+                </div>
+              </div><br/>
+            </div>
+
+{#根据主题查询数据库中的贴吧信息,
+根据条数,决定网页显示几个li,li内存放对应的贴吧(每一个li中存放两个贴吧),
+#}
+            <div class="column">
+              <div class="subtitle">{{ topic_html }}
+
+
+                <div class="columns is-multiline">
+                {% for bar in get_all_bars_hot(page_bar=page,topic=topic_html) %}
+                  <div class="column is-half">
+                    <div class="card">
+                      <div class="card-content">
+                        <div class="media">
+                          <div class="media-left">
+                            <div class="img"><img src="{{ url_for('static', filename=bar.b_head_img) }}" width="192"/></div>
+                          </div>
+                          <div class="media-content">
+                            <ul class="ul-self">
+                              <li><br/></li>
+                              <li>
+                                <div class="columns">
+                                  <div class="column"><a class="subtitle" href='/bar/{{ bar.b_path }}'>{{ bar.b_name }}</a></div>
+                                    {% if is_login() %}
+                                        {% if attention_status(select_user_info.u_id,bar.b_id)==0 %}
+                                            <div class="column is-3"><form method="post" action="/delete_bar/{{ bar.b_id }}"><input class="button" value="删除" type="submit" onclick="return sure()"></form></div>
+                                        {% endif %}
+                                    {% else %}
+                                        <dev></dev>
+                                    {% endif %}
+
+                                </div>
+                              </li>
+                            {% if is_login() %}
+                              {% if attention_status(select_user_info.u_id,bar.b_id)==0 %}
+                              <li><br/><a class="is-black button" href="/bar/{{bar.b_path}}">吧主</a></li>
+                              {% else %}
+                              {% if attention_status(select_user_info.u_id,bar.b_id)==1 %}
+                              <li><br/><a class="is-light button" href="/concentrate_a_bar/{{bar.b_id}}?cancel">已关注</a></li>
+                              {% else %}
+                              <li><br/><a class="is-link button" href="/concentrate_a_bar/{{bar.b_id}}">+关注</a></li>
+                              {% endif %}
+                              {% endif %}
+                            {% else %}
+                                <li><br/><a class="is-link button" href="/login">+关注</a></li>
+                            {% endif %}
+                            </ul>
+                          </div>
+                        </div>
+                        <p>{{ bar.b_statement }}</p>
+                        <hr/>
+                        <div class="content">
+                          <div class="columns">
+                            <div class="column">
+                              <div class="media">
+                                <div class="media-left">
+                                  <div class="img"><img src="{{ url_for('static', filename='img/counts.png') }}" width="20"/></div>
+                                </div>
+                                <div class="media-content">{{ bar.b_count_users }}关注</div>
+                              </div>
+                            </div>
+                            <div class="column">
+                              <div class="media">
+                                <div class="media-left">
+                                  <div class="img"><img src="{{ url_for('static', filename='img/posts.png') }}" width="20"/></div>
+                                </div>
+                                <div class="media-content">{{ bar.b_count_posts }}回帖</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+
+
+              </div>
+
+
+                    </div>
+                  </div>
+              </div>
+              <div class="column">
+                <div class="pagination is-centered is-rounded">
+                    {% if page==1 %}
+                    <dev></dev>
+                    {% else %}
+                    <a class="pagination-previous" href="/bar_page/{{ topic_html }}/{{ page-1 }}">上一页</a>
+                    {% endif %}
+
+
+                        <div class="pagination-list has-text-centered">
+                        {% for i in range(get_bar_page_counts(topic=topic_html)) %}
+                      {% if i+1==page %}
+                          <a class="pagination-link is-current " href="/bar_page/{{ topic_html }}/{{i+1}}">{{i+1}}</a>
+                          {% else %}
+                          <a class="pagination-link" href="/bar_page/{{ topic_html }}/{{i+1}}">{{i+1}}</a>
+                          {% endif %}
+                    {% endfor %}
+
+
+
+                  </div>
+
+                    {% if page!=get_bar_page_counts(topic=topic_html) %}
+                    <a class="pagination-next" href="/bar_page/{{ topic_html }}/{{ page+1 }}">下一页</a>
+                    {% else %}
+                    <dev></dev>
+                    {% endif %}
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    <div class="footer has-background-grey-lighter">
+      <div class="content has-text-centered">Developmented by 第四组</div>
+    </div>
+  </body>
+</html>

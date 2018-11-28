@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-steps.css') }}"/>
+    <script>
+        function ondisplay() {
+            var fakename = document.getElementById('fakename').value
+            var bir = document.getElementById('bir').value
+            var sex = ''
+            if (document.getElementById('boy').checked == true){
+                sex = '男'
+            }
+            else if (document.getElementById('girl').checked == true){
+                sex = '女'
+            }
+            var tag = document.getElementById('tag').value
+            fetch('/new_mesgs/', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({fakename: fakename, bir: bir, sex: sex, tag: tag})
+            }).then(function (res) {
+                return res.json()
+            }).then(function (data) {
+                if (data.status == 0) {
+                        location.href = '/register3/'
+                    }
+                else {
+                    document.getElementById('tips').innerHTML=data.error
+                }
+            })
+
+        }
+         function get_focus(){
+            document.getElementById('tips').innerHTML=""
+        }
+         function add_images() {
+                location.href = '/testimg/'
+            }
+    </script>
+</head>
+<body>
+<div class="navbar main is-light">
+    <div class="container"><a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}"
+                                            width="160px"/></a>
+        <div class="navbar-end">
+            <div class="navbar-item field has-addons">
+                <div class="control">
+                    <input class="input input-search is-focused" type="text" placeholder="搜索贴吧，帖子"/>
+                </div>
+                <div class="control"><a class="button is-info" href="#">进入贴吧</a></div>
+            </div>
+            <div class="navbar-item field">
+                <div class="control"><a class="button is-link" href="#">全吧搜索</a></div>
+            </div>
+            <div class="navbar-item"></div>
+            <div class="navbar-item"></div>
+
+            {% if is_login() %}
+                <div class="navbar-item">
+                    <div class="navbar is-light">
+                        <div class="navbar-item has-dropdown is-hoverable">
+                            <a class="navbar-link" href="#">云小帅</a>
+                            <div class="navbar-dropdown">
+                                <a class="navbar-item">我的主页</a>
+                                <hr class="navbar-divider"/>
+                                <a class="navbar-item">退出</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="navbar-item"><a class="button is-light" href="/login">登录</a></div>
+                <div class="navbar-item"><a class="button is-light" href="/register">注册</a></div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="hero is-dark is-fullheight">
+    <div class="container has-text-centered ">
+        <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+
+        <div class="column is-6 is-offset-3">
+            <div class="card">
+                <div class="box">
+                    <ul class="steps">
+                        <li class="steps-segment "><span class="steps-marker">1</span></li>
+                        <li class="steps-segment is-active"><span class="steps-marker">2</span></li>
+                        <li class="steps-segment"><span class="steps-marker">3</span></li>
+                    </ul>
+                    <div class="field">
+                        <ul class="ul-self">
+                            <li>
+                                <h3 class="title has-text-grey">基本信息</h3>
+                                <strong class="errmsg" style="color: red" id="tips">{{ error }}</strong>
+                            </li>
+                            <li>
+                                <div class="control">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <div class="img"><img
+                                                    src="{{ url_for('static', filename=img) }}"
+                                                    width="128"/></div>
+                                        </div>
+                                        <div class="media-right head-font-style"><br/><br/>
+                                            <button class="button is-dark" type="button" onclick="add_images()">添加头像
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="control">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <p>昵 &nbsp; 称:</p>
+                                        </div>
+                                        <div class="media-right">
+                                            <input class="input input-search" onfocus="get_focus()" type="text" name="fakename" id="fakename"
+                                                   placeholder="昵称"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="control"></div>
+                                <div class="media">
+                                    <div class="media-left">
+                                        <p>生 &nbsp; 日:</p>
+                                    </div>
+                                    <div class="media-right">
+                                        <input class="input input-search" onfocus="get_focus()" id="bir" name="bir" type="date"/>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="control">
+                                    <div class="columns">
+                                        <div class="column is-3">
+                                            <p>性 &nbsp; 别:</p>
+                                        </div>
+                                        <div class="column is-4">
+                                            <label class="radio">
+                                                <div class="media">
+                                                    <div class="media-left">
+                                                        <input type="radio" name="sex" id="boy" value="男"/>
+                                                    </div>
+                                                    <div class="media-right">
+                                                        <div class="content">男</div>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        <div class="column">
+                                            <label class="radio">
+                                                <div class="media">
+                                                    <div class="media-left">
+                                                        <input type="radio" name="sex" id="girl" value="女"/>
+                                                    </div>
+                                                    <div class="media-right">
+                                                        <div class="content">女</div>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="control">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <p>个性签名</p>
+                                        </div>
+                                        <div class="media-right">
+                                        <textarea class="textarea input-search" type="textarea" id="tag" name="tag"
+                                                  placeholder="填写个性签名"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="field">
+                        <div class="control has-text-centered"><a class="button is-link is-rounded" href="#"
+                                                                  onclick="ondisplay()">下一步</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

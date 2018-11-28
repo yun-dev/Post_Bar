@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <title>我的主页|贴吧</title>
+    <script>{% for bit in posts_list %}
+function myFunction(){
+	var x;
+	var r=confirm("你确定删除吗？");
+	if (r==true){
+		x="确定";location.href = '/delete_mypost/{{ user.u_id }}/{{ bit[3] }}'
+	}
+	else{
+		x="取消";
+	}}{% endfor %}
+
+</script>
+ <style type="text/css">
+      #search_input{
+        position: relative;
+      }
+      #search_tip{
+        position: absolute;
+        z-index:10;
+        left:31%;
+        top:70%;
+        width: 490px;
+      }
+      #search_tip ul li{
+        padding-left: 10px;
+      }
+    </style>
+    <script>
+
+      function stop_show(keyword){
+        if(keyword){
+          document.getElementById('search_input').value=keyword
+        }
+        document.getElementById('search_tip').classList.add('undisplay')
+      }
+
+      function search(){
+        var keyword=document.getElementById('search_input').value
+        if(keyword==null | keyword==""){
+          stop_show(null)
+        }else{
+          console.log(keyword)
+          fetch('/search/',{
+            method:'POST',
+            body:JSON.stringify({keyword:keyword}),
+            headers:{'Content-Type':'application/json'}
+          }).then( (res) => {
+            return res.json()
+          }).then( (data) => {
+            bar=data.bar
+            post=data.post
+            tip_html="<table style='width:100%;margin-left:10px;text-align:left !important'>"
+            for(i=0;i<bar.length;i++){
+              tip_html+="<tr><td style='text-align:left;'><button style='margin-right:10px' type='button' class='is-fullwidth button is-primary has-text-dark' onmousedown='stop_show(\""+bar[i][0]+"\")'>"+bar[i][0]+"</button></td></tr>"
+            }
+            for(j=0;j<post.length;j++){
+              tip_html+="<tr><td style='text-align:left;'><button style='margin-right:10px' type='button' class='is-fullwidth button is-primary has-text-dark' onmousedown='stop_show(\""+post[j][0]+"\")'>"+post[j][0]+"</button></td></tr>"
+            }
+            tip_html+="</table>"
+            document.getElementById('search_tip').classList.remove('undisplay')
+            document.getElementById('search_tip').innerHTML=tip_html
+          }).catch( (e) => {
+            console.error(e)
+          })
+        }
+      }
+
+    </script>
+</head>
+
+<body>
+<div class="navbar main is-light">
+      <div class="container">
+        <a><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}" width="160px"/></a>
+        <div class="navbar-end">
+          <form action="/submit_search/" method="POST">
+          <div class="navbar-item field has-addons">
+            <div class="control">
+              <input class="input input-search" id="search_input" name="search_input" onblur="stop_show(null)" oninput="search()" type="text" placeholder="搜索贴吧，帖子"/>
+            </div>
+            <div class="control"><a class="button is-info">进入贴吧</a></div><div style="width:20px;"></div>
+            <div class="control"><button style="border-radius:3px;" class="button is-link" type="submit">全吧搜索</button></div><div style="width:100px;"></div>
+          </div>
+          <div class="undisplay" id="search_tip">
+          </div>
+        </form>
+
+          {% if is_login() %}
+          <div class="navbar-item">
+            <div class="navbar is-light">
+              <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link">{{current_user.u_nickname}}</a>
+                <div class="navbar-dropdown">
+                  <a class="navbar-item" href="/user/{{current_user.u_id}}/">我的主页</a>
+                    <hr class="navbar-divider"/>
+                    <a class="navbar-item" href="/user/mybar/{{ current_user.u_id }}/">我的贴吧</a>
+                            <hr class="navbar-divider"/>
+                    <a class="navbar-item" href="/user/like/{{ current_user.u_id }}/">我的收藏</a>
+<hr class="navbar-divider"/>
+                    <a class="navbar-item" href="/user/mypost/{{ current_user.u_id }}/">我的帖子</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="navbar-item"><a class="button is-light" href="/login/">登录</a></div>
+          <div class="navbar-item"><a class="button is-light" href="/register/">注册</a></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+<div class="hero has-background-dark"><br/>
+      <div class="container">
+        <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+        <div class="hero-body card">
+  <div class="card-content">
+            <ul>
+              <li>
+                <div class="subtitle">我的帖子</div>
+              </li>
+            </ul>
+          </div>
+          <hr/>
+
+
+
+            {% for bit in posts_list %}  <div class="card-content">
+            <div class="columns">
+
+              <div class="column"><a class="subtitle title-color" href="/post/{{ bit[3] }}/">{{ bit[0] }}</a></div>
+            {% if note.u_id==current_user.u_id %}<button class="button" type="button" onclick="myFunction()" >删除该贴{% endif %}
+                </button></div>
+          </div>
+          <div class="card-content">{{ bit[1] }}</div>
+          <div class="card-content">
+
+            <div class="media">{% for i in img %} {% if i.p_id==bit[3] %}<img src="{{ url_for('static', filename=i.img_path) }}" width="262"/>{% endif %}{% endfor %}</div>
+
+            <div class="content">
+              <div class="columns">
+                <div class="column">
+                  <div class="media">
+                    <div class="media-left"><img src="{{ url_for('static', filename='img/msg_logo.png') }}" width="32"/></div>
+                    <div class="media-content">66 回帖</div>
+                  </div>
+                </div>
+                <div class="column is-3">
+                  <div class="media">
+                    <div class="media-left"><img src="{{ url_for('static', filename='img/time_bg.png') }}" width="30"/></div>
+                    <div class="media-content">{{ bit[2] }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+                <hr/>
+
+          {% endfor %}
+
+          <div class="column">
+            <div class="pagination is-centered is-rounded">
+                     {% if current_page==1 %}{% else %}<a class="pagination-previous" href="/mypost/page/{{ user.u_id }}/{{ current_page-1 }}/">上一页</a>{% endif %}
+                    <div class="pagination-list">
+                                      {% for i in range(1,page) %}
+                              {% if i==current_page %} <a class="pagination-link is-current" href="/mypost/page/{{ user.u_id }}/{{ i}}/">{{ i }}</a>
+                    {% else %}<a class="pagination-link" href="/mypost/page/{{ user.u_id }}/{{ i }}/">{{ i }}</a>{% endif %}{% endfor %}
+                    </div>
+                 {% if page-1<1 %}{% else %}{% if current_page==page-1 %}  {% else %}  <a class="pagination-next" href="/mypost/page/{{ user.u_id }}/{{ current_page+1 }}/">下一页</a>{% endif %}{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer has-background-grey-lighter">
+      <div class="content has-text-centered">Developmented by 第四组</div>
+    </div>
+  </body>
+</html>

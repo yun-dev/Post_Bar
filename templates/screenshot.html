@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link href="{{ url_for('static', filename='cm/docs/css/cropper.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='cm/docs/css/main.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='cm/docs/js/cropper.js') }}"></script>
+    <script src="{{ url_for('static', filename='cm/dists/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='jc/dists/jquery-cropper.js') }}"></script>
+    <script>
+        function receive_img() {
+
+            location.href = '/register2/'
+        }
+    </script>
+
+    <style>
+        img {
+            max-width: 100%; /* This rule is very important, please do not ignore this! */
+        }
+    </style>
+
+</head>
+<body>
+<div class="navbar main is-light">
+    <div class="container"><a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}"
+                                            width="160px"/></a>
+        <div class="navbar-end">
+            <div class="navbar-item field has-addons">
+                <div class="control">
+                    <input class="input input-search is-focused" type="text" placeholder="搜索贴吧，帖子"/>
+                </div>
+                <div class="control"><a class="button is-info" href="#">进入贴吧</a></div>
+            </div>
+            <div class="navbar-item field">
+                <div class="control"><a class="button is-link" href="#">全吧搜索</a></div>
+            </div>
+            <div class="navbar-item"></div>
+            <div class="navbar-item"></div>
+
+            {% if is_login() %}
+                <div class="navbar-item">
+                    <div class="navbar is-light">
+                        <div class="navbar-item has-dropdown is-hoverable">
+                            <a class="navbar-link" href="#">云小帅</a>
+                            <div class="navbar-dropdown">
+                                <a class="navbar-item">我的主页</a>
+                                <hr class="navbar-divider"/>
+                                <a class="navbar-item">退出</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="navbar-item"><a class="button is-light" href="/login">登录</a></div>
+                <div class="navbar-item"><a class="button is-light" href="/register">注册</a></div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+<div class="hero is-dark is-fullheight">
+    <div class="container has-text-centered ">
+        <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+            <div class="cropper-cut-view">
+                <div class="classification-layer">
+                    <div class="classification-layer-main" style="font-size:16px;">
+                        <div class="cut-container"
+                             style="width: 750px;height: 400px;margin:20px 30px;border:dashed #cacaca 1px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input style="margin-left:30px;" type="file" id="fileUp" name="fileUp" onchange="beginCut()"/>
+            <button type="button" class="button cut-submit is-success">裁剪</button>
+            <button type="button" class="button is-info" onclick="receive_img()">返回</button>
+            <link href="{{ url_for('static', filename='cm/docs/css/cropper.css') }}" rel="stylesheet">
+            <link href="{{ url_for('static', filename='cm/docs/css/main.css') }}" rel="stylesheet">
+            <script src="{{ url_for('static', filename='cm/docs/js/cropper.js') }}"></script>
+            <script src="{{ url_for('static', filename='cm/dists/jquery.js') }}"></script>
+            <script src="{{ url_for('static', filename='jc/dists/jquery-cropper.js') }}"></script>
+
+
+            <script type="text/javascript">
+                var picScale = {width: 340, height: 226, bWidth: 340, bHeight: 226};
+                var cutView = $(".cropper-cut-view");
+                var $fileUp = $("#fileUp");
+                //兼容性判定
+                var support = {
+                    fileList: !!$('<input type="file">').prop('files'),
+                    blobURLs: !!window.URL && URL.createObjectURL,
+                    formData: !!window.FormData
+                };
+                support.datauri = support.fileList && support.blobURLs;
+
+                var files, file;
+
+                function beginCut() {
+                    //不兼容的情况未做处理，可自行参考官方php example中的解决方法
+                    if (support.datauri) {
+                        files = $fileUp.prop("files");
+                        if (files.length > 0) {
+                            file = files[0];
+                        }
+                        if (isImageFile(file)) {
+                            picUrl = URL.createObjectURL(file);
+                            this.startCropper();
+                        }
+                    }
+                }
+
+                function isImageFile(file) {
+                    if (file.type) {
+                        return /^image\/\w+$/.test(file.type);
+                    } else {
+                        return /\.(jpg|jpeg|png|gif)$/.test(file);
+                    }
+                }
+
+                var active = false;
+
+                function startCropper() {
+                    var _this = this;
+                    if (active) {
+                        $img.cropper('replace', picUrl);
+                    } else {
+
+                        $img = $('<img src="' + picUrl + '">');
+                        $(".cut-container").empty().html($img);
+                        console.log($img.width());
+                        console.log($img.height());
+                        $img.cropper({
+                            aspectRatio: 1,
+                            autoCrop: false,
+                            //minCropBoxWidth:216,
+                            //minCropBoxHeight:144,
+                            zoomable: false,
+                            scalable: false,
+                            rotatable: false,
+                            //autoCropArea:0.01,
+                            ready: function () {
+                                var result = $img.cropper("getImageData");
+                                $img.cropper('crop');
+                                $img.cropper('setData', {
+                                    width: picScale.bWidth,
+                                    height: picScale.bHeight
+                                });
+                                //$img.cropper({minCropBoxWidth:mw,minCropBoxHeight:mh,});
+                                //$img.cropper("reset");
+                            }
+                        });
+                        $img.on('cropmove', function (e) {
+                            var data = $img.cropper('getData');
+                            if (data.width < picScale.width || data.height < picScale.height) {
+                                e.preventDefault();
+                            }
+                        });
+                        $img.on('cropend', function (e) {
+                            var data = $img.cropper('getData');
+                            if (data.width < picScale.width || data.height < picScale.height) {
+                                $img.cropper('setData', {
+                                    width: picScale.width,
+                                    height: picScale.height
+                                });
+                            }
+                        });
+
+                        active = true;
+                    }
+                }
+
+                function stopCropper() {
+                    if (active) {
+                        $img.cropper("destroy");
+                        $img.remove();
+                        $fileUp.val("");
+                        active = false;
+                    }
+                }
+
+                $(".cut-submit").on('click', function () {
+                    //
+                    if (!$img) {
+                        alert("请上传图片!");
+                        return;
+                    }
+                    $img.cropper("getCroppedCanvas").toBlob(function (blob) {
+                        var formData = new FormData();
+                        formData.append('files', blob, file.name);
+
+                        $.ajax({
+                            method: "post",
+                            url: '/new_mesgss/', //用于文件上传的服务器端请求地址
+                            data: formData,
+                            datatype: 'json',
+                            processData: false,
+                            contentType: false,
+                            success: function (status) {
+                                console.log(result);
+                                if (typeof result == "string") {
+                                    result = $.parseJSON(result);
+                                }
+                                if (result.data && result.data.length) {
+                                    currentUploadDom.parent().next().next().show();
+                                    currentUploadDom.attr("src", result.data[0]);
+                                    //close
+                                    cutView.hide();
+                                    stopCropper();
+                                }
+
+                            }
+                        });
+                    });
+                });
+
+            </script>
+
+    </div>
+</div>
+
+</body>
+</html>

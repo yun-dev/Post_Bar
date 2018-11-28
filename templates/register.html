@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-steps.css') }}"/>
+    <style type="text/css">
+        .undisplay{
+            display: none;
+        }
+    </style>
+    <script>
+        function ondisplay(id) {
+            if(id == 1){
+                var user = document.getElementById('user').value
+                var pwd = document.getElementById('pwd').value
+                var pwd1 = document.getElementById('pwd1').value
+                var number = document.getElementById('number').value
+                var one = document.getElementById('list1')
+                var two = document.getElementById('list2')
+                fetch('/new_mesg/',{
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({user: user,pwd:pwd,pwd1:pwd1,number:number})
+                }).then(function (res) {
+                    return res.json()
+                }).then(function (data) {
+                    if (data.status == 0) {
+                        one.classList.add('undisplay')
+                        two.classList.remove('undisplay')
+                    }
+                    else
+                    {
+                        location.href = '/'
+                    }
+                })
+            }
+            else if(id == 2){
+                var three = document.getElementById('list3')
+                three.classList.remove('undisplay')
+                var two = document.getElementById('list2')
+                two.classList.add('undisplay')
+            }else if(id==3){
+                location.href = '/'
+            }
+        }
+        function add_images() {
+            location.href = '/testimg/'
+        }
+    </script>
+    <title>注册</title>
+  </head>
+  <body>
+
+    <div class="navbar main is-light">
+      <div class="container"><a href="/"><img class="image" src="{{ url_for('static', filename='img/logo.jpg') }}" width="160px"/></a>
+        <div class="navbar-end">
+          <div class="navbar-item field has-addons">
+            <div class="control">
+              <input class="input input-search is-focused" type="text" placeholder="搜索贴吧，帖子"/>
+            </div>
+            <div class="control"><a class="button is-info" href="#">进入贴吧</a></div>
+          </div>
+          <div class="navbar-item field">
+            <div class="control"><a class="button is-link" href="#">全吧搜索</a></div>
+          </div>
+          <div class="navbar-item"></div>
+          <div class="navbar-item"></div>
+
+          {% if is_login() %}
+          <div class="navbar-item">
+            <div class="navbar is-light">
+              <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link" href="#">云小帅</a>
+                <div class="navbar-dropdown">
+                  <a class="navbar-item">我的主页</a>
+                  <hr class="navbar-divider"/>
+                  <a class="navbar-item">退出</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="navbar-item"><a class="button is-light" href="/login">登录</a></div>
+          <div class="navbar-item"><a class="button is-light" href="/register">注册</a></div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+    <div class="hero is-dark is-fullheight">
+      <div class="container has-text-centered " >
+          <div class="flow"><span class="flow-1"></span><span class="flow-2"></span><span class="flow-3"></span></div>
+
+          <div class="column is-6 is-offset-3" id="list1">
+          <br><br>
+
+          <div class="card" >
+
+            <div class="box">
+                 <ul class="steps">
+              <li class="steps-segment is-active"><span class="steps-marker">1</span></li>
+              <li class="steps-segment "><span class="steps-marker">2</span></li>
+              <li class="steps-segment"><span class="steps-marker">3</span></li>
+            </ul>
+              <div class="field">
+                <h3 class="title has-text-grey">注册</h3>
+                <p class="subtitile has-text-grey">欢迎注册!</p>
+              </div>
+              <div class="field">
+                <div class="control">
+                  <div class="columns">
+                    <div class="column is-2">用户名</div>
+                    <div class="column">
+                      <input class="input input-search" type="text" name="user" id="user" placeholder="用户名长度为6~18个字符，支持数字字母下划线，不允许有空格"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <div class="control">
+                  <div class="columns">
+                    <div class="column is-2">密 码</div>
+                    <div class="column">
+                      <input class="input input-search" type="password" name="pwd" id="pwd" placeholder="密码长度为6~18个字符，支持数字字母下划线，不允许有空格"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <div class="control">
+                  <div class="columns">
+                    <div class="column is-2">确认密码</div>
+                    <div class="column">
+                      <input class="input input-search" type="password" name="pwd1" id="pwd1" placeholder="确认密码"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <div class="control">
+                  <div class="columns">
+                    <div class="column is-2">手机号</div>
+                    <div class="column">
+                      <input class="input input-search" type="text" name="number" id="number" placeholder="手机号"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <div class="control has-text-centered"><button class="button is-link is-rounded" type="button" onclick="ondisplay(1)">下一步</button></div>
+              </div>
+            </div>
+            <p class="has-text-grey"><a href="#">已有账号,点击登录</a></p>
+          </div>
+        </div>
+
+        <div class="container has-text-centered undisplay" id="list2">
+          <div class="column is-6 is-offset-3">
+            <div class="box">
+                   <ul class="steps">
+              <li class="steps-segment "><span class="steps-marker">1</span></li>
+              <li class="steps-segment is-active"><span class="steps-marker">2</span></li>
+              <li class="steps-segment"><span class="steps-marker">3</span></li>
+            </ul>
+              <div class="field">
+                <ul class="ul-self">
+                  <li>
+                    <h3 class="title has-text-grey">基本信息</h3>
+                  </li>
+                  <li>
+                    <div class="control">
+                      <div class="media">
+                        <div class="media-left">
+                          <div class="img"><img src="{{ url_for('static', filename='img/baidu.png') }}" width="128"/></div>
+                        </div>
+                        <div class="media-right head-font-style"><br/><br/><button class="button is-dark" type="button" onclick="add_images()">添加头像</button></div>
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="control">
+                      <div class="media">
+                        <div class="media-left">
+                          <p>昵 &nbsp; 称:</p>
+                        </div>
+                        <div class="media-right">
+                          <input class="input input-search" type="text" name="fakename" placeholder="昵称"/>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="control"></div>
+                    <div class="media">
+                      <div class="media-left">
+                        <p>生 &nbsp; 日:</p>
+                      </div>
+                      <div class="media-right">
+                        <input class="input input-search" name="bir" type="date"/>
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="control">
+                      <div class="columns">
+                        <div class="column is-3">
+                          <p>性 &nbsp; 别:</p>
+                        </div>
+                        <div class="column is-4">
+                          <label class="radio">
+                            <div class="media">
+                              <div class="media-left">
+                                <input type="radio" name="sex" value="男"/>
+                              </div>
+                              <div class="media-right">
+                                <div class="content">男</div>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                        <div class="column">
+                          <label class="radio">
+                            <div class="media">
+                              <div class="media-left">
+                                <input type="radio" name="sex" value="女"/>
+                              </div>
+                              <div class="media-right">
+                                <div class="content">女</div>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="control">
+                      <div class="media">
+                        <div class="media-left">
+                          <p>个性签名</p>
+                        </div>
+                        <div class="media-right">
+                          <textarea class="textarea input-search" type="textarea" name="tag" placeholder="填写个性签名"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              <div class="field">
+                <div class="control has-text-centered"><a class="button is-link is-rounded" href="#" onclick="ondisplay(2)">下一步</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="container has-text-centered undisplay" id="list3">
+          <div class="column is-6 is-offset-3">
+            <div class="box">
+             <ul class="steps">
+              <li class="steps-segment "><span class="steps-marker">1</span></li>
+              <li class="steps-segment "><span class="steps-marker">2</span></li>
+              <li class="steps-segment is-active"><span class="steps-marker">3</span></li>
+            </ul>
+              <div class="field">
+                <ul class="ul-self">
+                  <li>
+                    <h3 class="title has-text-grey">注册完成</h3>
+                  </li>
+                  <li>
+                    <div class="control has-text-centered"><img src="{{url_for('static',filename='img/done.png')}}" width="140px"/></div>
+                  </li>
+                </ul>
+              </div>
+              <div class="field">
+                <div class="control has-text-centered">
+                  <button class="button is-info is-medium is-rounded is-fullwidth" onclick="ondisplay(3)">完成</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
